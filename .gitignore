@@ -1,3 +1,9 @@
+# Files without extension (excl. Makefile)
+*
+!/**/
+!*.*
+!makefile
+
 # Prerequisites
 *.d
 
@@ -50,3 +56,6 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+build/
+.vscode/
