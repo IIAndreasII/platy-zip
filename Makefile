@@ -4,7 +4,7 @@ CFLAGS = -Wall -Wextra -Iinclude -g
 SRC_DIR = src
 INCLUDE_DIR = include
 BUILD_DIR = build
-TARGET = main
+TARGET = plzip
 
 # Automatically find all .c files in the src directory
 SRCS = $(wildcard $(SRC_DIR)/*.c)

@@ -3,7 +3,7 @@
 
 #define SIZE 256
 
-typedef struct map_t map_t;
+typedef struct hash_map_t hash_map_t;
 typedef struct kvp_t kvp_t;
 
 
@@ -12,9 +12,7 @@ struct kvp_t {
     void* v;
 };
 
-struct map_t {
 
-};
 
 
 

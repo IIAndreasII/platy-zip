@@ -54,9 +54,9 @@ static void down(prio_queue_t* q, size_t k)
     }
 }
 
-prio_queue_t* new_prio_queue(size_t n,
-                             int (*compare)(const void*, const void*),
-                             size_t* (*position)(void*))
+prio_queue_t* pq_new(size_t n,
+                     int (*compare)(const void*, const void*),
+                     size_t* (*position)(void*))
 {
     prio_queue_t* pq;
     size_t s;
@@ -70,13 +70,12 @@ prio_queue_t* new_prio_queue(size_t n,
     return pq;
 }
 
-void init_prio_queue(prio_queue_t* q, void* b, size_t s)
+void pq_init(prio_queue_t* q, void* b, size_t s)
 {
     size_t k;
-    void* x;
+    //void* x;
 
-    for (k = 1; k <= q->n; k++)
-    {
+    for (k = 1; k <= q->n; k++) {
         q->a[k] = (char*)b + s * (k - 1);
         *(*q->position)(q->a[k]) = k;
     }
@@ -85,9 +84,6 @@ void init_prio_queue(prio_queue_t* q, void* b, size_t s)
     for (k = q->n / 2; k >= 1; k--)
         down(q, k);
 }
-
-
-
 
 void pq_insert(prio_queue_t* q, void *x)
 {
@@ -104,9 +100,7 @@ size_t pq_size(prio_queue_t* q)
 
 void* pq_min(prio_queue_t* q)
 {
-    void* x;
-
-    x = q->a[1];
+    void* x = q->a[1];
     q->a[1] = q->a[q->i];
     *(*q->position)(q->a[1]) = 1;
     q->a[q->i] = NULL;
@@ -114,5 +108,12 @@ void* pq_min(prio_queue_t* q)
     down(q, 1);
 
     return x;
+}
+
+void pq_change_priority(prio_queue_t* pq, void* x)
+{
+    size_t k = *(*pq->position)(x);
+    up(pq, k);
+    down(pq, k);
 }
 
