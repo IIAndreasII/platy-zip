@@ -13,15 +13,12 @@ struct prio_queue_t {
 
 static void swap(prio_queue_t* q, size_t i, size_t j)
 {
-    void *x;
-
-    x = q->a[i];
+    void* x = q->a[i];
     q->a[i] = q->a[j];
     q->a[j] = x;
     *(*q->position)(q->a[i]) = i;
     *(*q->position)(q->a[j]) = j;
 }
-
 
 static void up(prio_queue_t* q, size_t k)
 {
@@ -58,10 +55,8 @@ prio_queue_t* pq_new(size_t n,
                      int (*compare)(const void*, const void*),
                      size_t* (*position)(void*))
 {
-    prio_queue_t* pq;
-    size_t s;
-    s = sizeof(prio_queue_t) + (n + 1) * sizeof(void*);
-    pq = malloc(s);
+    size_t s = sizeof(prio_queue_t) + (n + 1) * sizeof(void*);
+    prio_queue_t* pq = malloc(s);
     memset(pq, 0, s);
     pq->n = n;
     pq->i = 0;
@@ -73,7 +68,6 @@ prio_queue_t* pq_new(size_t n,
 void pq_init(prio_queue_t* q, void* b, size_t s)
 {
     size_t k;
-    //void* x;
 
     for (k = 1; k <= q->n; k++) {
         q->a[k] = (char*)b + s * (k - 1);

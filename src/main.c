@@ -16,6 +16,7 @@
 
 #include "prio_queue.h"
 #include "huffman.h"
+#include "hashmap.h"
 
 typedef struct {
     int a;
@@ -45,15 +46,21 @@ typedef struct {
 
 int main(int argc, char** argv)
 {
-    //char* str = "A_DEAD_DAD_CEDED_A_BAD_BABE_A_BEADED_ABACA_BED";
-    char* str = "the letters are sorted by increasing frequency, and the least frequent two at each step are combined and reinserted into the list, and a partial tree is constructed";
+    char* str = "A_DEAD_DAD_CEDED_A_BAD_BABE_A_BEADED_ABACA_BED";
+
+    //char* str = "the letters are sorted by increasing frequency, and the least frequent two at each step are combined and reinserted into the list, and a partial tree is constructed";
     size_t size = strlen(str);
     huffman_node_t* huff_tree = huffman_generate((uint8_t*)str, size);
-    print_huffman(huff_tree);
-    huffman_encode(huff_tree, (uint8_t*)str, size);
     
-    
-    
+    printf("Encoding dict:\n");
+    bitstream_t* stream = huffman_encode(huff_tree, (uint8_t*)str, size);
+
+    printf("Input:\n%s\nEncoded stream:\n", str);
+    print_bitstream(stream);
+
+    printf("Original size: %lu\nEncoded size: %lu\n", size * 8, bitstream_size(stream));
+
+
     // prio_queue_t* pq = new_prio_queue(4, compare_data, position);
 
     // data_t a1 = { .a = 1};

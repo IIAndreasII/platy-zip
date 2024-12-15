@@ -7,13 +7,22 @@
 
 #include "hashmap.h"
 #include "prio_queue.h"
+#include "bitstream.h"
 
 #define NUM_SYMBOLS 256
+
+struct sym_code_t
+{
+    uint64_t code;
+    size_t bit_len;
+};
+
+typedef HASHMAP(uint8_t, sym_code_t) huffman_enc_map_t;
 
 struct huffman_node_t
 {
     uint8_t symbol;
-    double weight; // Probability of symbol occurrance
+    double weight;         // Probability of symbol occurrance
     huffman_node_t *left;  // 0
     huffman_node_t *right; // 1
     bool is_branch;
@@ -50,34 +59,29 @@ void __print_huffman(huffman_node_t *root, size_t depth)
 
     if (root->is_branch)
     {
-        //printf("branch\n");
-        // for (size_t i = 0; i < depth; i++)
-        //     printf(".");
-        // printf("\n");
+        printf("branch\n");
+        for (size_t i = 0; i < depth; i++)
+            printf(".");
+        printf("\n");
         __print_huffman(root->left, depth + 1);
 
-        // for (size_t i = 0; i < depth; i++)
-        //     printf(".");
-        // printf("\n");
+        for (size_t i = 0; i < depth; i++)
+            printf(".");
+        printf("\n");
         __print_huffman(root->right, depth + 1);
     }
     else
     {
         for (size_t i = 0; i < depth; i++)
             printf(".");
-
         printf("'%c' - %f\n", root->symbol, root->weight);
     }
 }
 
-
-
 huffman_node_t *huffman_generate(uint8_t *buf, size_t size)
 {
     size_t freq[NUM_SYMBOLS];
-    double prob[NUM_SYMBOLS];
     memset(freq, 0, NUM_SYMBOLS * sizeof(size_t));
-    memset(prob, 0, NUM_SYMBOLS * sizeof(double));
 
     prio_queue_t *pq_huffman = pq_new(NUM_SYMBOLS, compare_huffman, position_huffman);
 
@@ -89,15 +93,13 @@ huffman_node_t *huffman_generate(uint8_t *buf, size_t size)
     for (size_t i = 0; i < NUM_SYMBOLS; i++)
     {
         double weight = (double)freq[i] / (double)size;
-        prob[i] = weight;
         huffman_node_t *hn = calloc(1, sizeof(huffman_node_t));
 
         // Add node only if symbol occurs
         if (freq[i])
         {
-            // printf("%c, %f\n", (uint8_t)i, weight);
             hn->symbol = (uint8_t)i;
-            hn->weight = freq[i];
+            hn->weight = weight;
             pq_insert(pq_huffman, hn);
         }
     }
@@ -122,29 +124,21 @@ huffman_node_t *huffman_generate(uint8_t *buf, size_t size)
 
 int sym_compare(void *lhs, void *rhs)
 {
-    uint8_t l = *(uint8_t*)lhs;
-    uint8_t r = *(uint8_t*)rhs;
+    uint8_t l = *(uint8_t *)lhs;
+    uint8_t r = *(uint8_t *)rhs;
 
     if (l == r)
         return 0;
     else if (l > r)
         return 1;
-    else if (l < r)
+    else
         return -1;
-
-    return 0;
 }
 
-typedef struct {
-    uint64_t code;
-    size_t bit_len;
-} sym_code_t;
-
-void huffman_encode_table(HASHMAP(uint8_t, sym_code_t)* h, huffman_node_t* root, sym_code_t key)
+void huffman_encode_table(HASHMAP(uint8_t, sym_code_t) * h, huffman_node_t *root, sym_code_t key)
 {
     if (root == NULL)
         return;
-
 
     if (root->is_branch)
     {
@@ -157,31 +151,51 @@ void huffman_encode_table(HASHMAP(uint8_t, sym_code_t)* h, huffman_node_t* root,
     }
     else
     {
-        sym_code_t* sc = malloc(sizeof(sym_code_t));
+        sym_code_t *sc = malloc(sizeof(sym_code_t));
         sc->bit_len = key.bit_len;
         sc->code = key.code;
         hashmap_put(h, &root->symbol, sc);
     }
 }
 
-uint8_t* huffman_encode(huffman_node_t* root, uint8_t* data, size_t size)
+size_t symbol_hash(const void* data)
 {
-    HASHMAP(uint8_t, sym_code_t) enc_map;
-    hashmap_init(&enc_map, hashmap_hash_string, sym_compare);
+    return *((uint8_t*)data);
+}
 
-    sym_code_t key = { .bit_len = 0, .code = 0};
+bitstream_t *huffman_encode(huffman_node_t *root, uint8_t *data, size_t size)
+{
+    HASHMAP(uint8_t, sym_code_t)
+    enc_map;
+    hashmap_init(&enc_map, symbol_hash, sym_compare);
+
+    sym_code_t key = {.bit_len = 0, .code = 0};
 
     huffman_encode_table(&enc_map, root, key);
 
-    sym_code_t* v;
-    uint8_t* k;
-    hashmap_foreach(k, v, &enc_map) {
-        printf("sym: '%c', code: ", *k);
-        for (int i = v->bit_len - 1; i >= 0 ; i--)
+    uint8_t *k;
+    sym_code_t *v;
+    hashmap_foreach(k, v, &enc_map)
+    {
+        printf("key: %u, sym: '%c', code: ", *k, *k);
+        for (int i = v->bit_len - 1; i >= 0; i--)
             if ((v->code >> i) & 1)
                 printf("1");
             else
                 printf("0");
         printf(", bit_len: %li\n", v->bit_len);
     }
+
+    bitstream_t* bs = bitstream_new(size);
+    for (size_t s = 0; s < size; s++)
+    {
+        k = &data[s];
+        v = hashmap_get(&enc_map, k);
+        bitstream_write_64(bs, v->code, v->bit_len);
+    }
+
+
+    
+
+    return bs;
 }
