@@ -5,7 +5,8 @@
  * it under the terms of the MIT license. See LICENSE for details.
  */
 
-#pragma once
+#ifndef __HASH_MAP_H__
+#define __HASH_MAP_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -438,4 +439,7 @@ extern "C" {
 
 #ifdef __cplusplus
 }
+#endif
+
+
 #endif

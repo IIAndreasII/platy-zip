@@ -17,7 +17,6 @@ struct sym_code_t
     size_t bit_len;
 };
 
-typedef HASHMAP(uint8_t, sym_code_t) huffman_enc_map_t;
 
 struct huffman_node_t
 {
@@ -122,6 +121,36 @@ huffman_node_t *huffman_generate(uint8_t *buf, size_t size)
     return root;
 }
 
+
+
+void huffman_generate_enc_map(huffman_enc_map_t *h, huffman_node_t *root, sym_code_t key)
+{
+    if (root == NULL)
+        return;
+
+    if (root->is_branch)
+    {
+        key.bit_len++;
+        uint64_t prev_code = key.code;
+        key.code = (prev_code << 1);
+        huffman_generate_enc_map(h, root->left, key);
+        key.code = ((prev_code) << 1) + 1;
+        huffman_generate_enc_map(h, root->right, key);
+    }
+    else
+    {
+        sym_code_t *sc = malloc(sizeof(sym_code_t));
+        sc->bit_len = key.bit_len;
+        sc->code = key.code;
+        hashmap_put(h, &root->symbol, sc);
+    }
+}
+
+size_t symbol_hash(const void *data)
+{
+    return *((uint8_t *)data);
+}
+
 int sym_compare(void *lhs, void *rhs)
 {
     uint8_t l = *(uint8_t *)lhs;
@@ -135,43 +164,15 @@ int sym_compare(void *lhs, void *rhs)
         return -1;
 }
 
-void huffman_encode_table(HASHMAP(uint8_t, sym_code_t) * h, huffman_node_t *root, sym_code_t key)
-{
-    if (root == NULL)
-        return;
-
-    if (root->is_branch)
-    {
-        key.bit_len++;
-        uint64_t prev_code = key.code;
-        key.code = (prev_code << 1);
-        huffman_encode_table(h, root->left, key);
-        key.code = ((prev_code) << 1) + 1;
-        huffman_encode_table(h, root->right, key);
-    }
-    else
-    {
-        sym_code_t *sc = malloc(sizeof(sym_code_t));
-        sc->bit_len = key.bit_len;
-        sc->code = key.code;
-        hashmap_put(h, &root->symbol, sc);
-    }
-}
-
-size_t symbol_hash(const void* data)
-{
-    return *((uint8_t*)data);
-}
-
 bitstream_t *huffman_encode(huffman_node_t *root, uint8_t *data, size_t size)
 {
-    HASHMAP(uint8_t, sym_code_t)
-    enc_map;
+    huffman_enc_map_t
+        enc_map;
     hashmap_init(&enc_map, symbol_hash, sym_compare);
 
     sym_code_t key = {.bit_len = 0, .code = 0};
 
-    huffman_encode_table(&enc_map, root, key);
+    huffman_generate_enc_map(&enc_map, root, key);
 
     uint8_t *k;
     sym_code_t *v;
@@ -186,7 +187,7 @@ bitstream_t *huffman_encode(huffman_node_t *root, uint8_t *data, size_t size)
         printf(", bit_len: %li\n", v->bit_len);
     }
 
-    bitstream_t* bs = bitstream_new(size);
+    bitstream_t *bs = bitstream_new(size);
     for (size_t s = 0; s < size; s++)
     {
         k = &data[s];
@@ -194,8 +195,16 @@ bitstream_t *huffman_encode(huffman_node_t *root, uint8_t *data, size_t size)
         bitstream_write_64(bs, v->code, v->bit_len);
     }
 
-
-    
-
     return bs;
+}
+
+int huffman_depth(huffman_node_t *root)
+{
+    if (root == NULL)
+        return -1;
+
+    int l = huffman_depth(root->left);
+    int r = huffman_depth(root->right);
+
+    return (l > r ? l : r) + 1;
 }

@@ -52,6 +52,11 @@ void __bitstream_write_8(bitstream_t *bs, uint8_t data, size_t num_bits)
         uint8_t bits = data << (UINT8_BIT_COUNT - num_bits - bs->bit_offset);
         bs->stream[bs->byte_offset] |= bits;
         bs->bit_offset += num_bits;
+        if (bs->bit_offset >= UINT8_BIT_COUNT)
+        {
+            bs->bit_offset %= UINT8_BIT_COUNT;
+            bs->byte_offset++;
+        }
     }
     bs->size += num_bits;
 }
@@ -123,7 +128,81 @@ void print_bitstream(bitstream_t *bs)
     printf("\n");
 }
 
+static uint8_t dec_to_hex(uint8_t d)
+{
+    switch (d)
+    {
+    case 0:
+        return '0';
+    case 1:
+        return '1';
+    case 2:
+        return '2';
+    case 3:
+        return '3';
+    case 4:
+        return '4';
+    case 5:
+        return '5';
+    case 6:
+        return '6';
+    case 7:
+        return '7';
+    case 8:
+        return '8';
+    case 9:
+        return '9';
+    case 10:
+        return 'A';
+    case 11:
+        return 'B';
+    case 12:
+        return 'C';
+    case 13:
+        return 'D';
+    case 14:
+        return 'E';
+    case 15:
+        return 'F';
+    default:
+        return '-';
+    }
+}
+
+void print_bitstream_hex(bitstream_t *bs)
+{
+    for (size_t i = 0; i < bs->byte_offset; i++)
+    {
+        uint8_t l = bs->stream[i] >> (UINT8_BIT_COUNT / 2);
+        uint8_t r = bs->stream[i] & 0b00001111;
+        printf("%c%c ", dec_to_hex(l), dec_to_hex(r));
+    }
+
+    if (bs->bit_offset > 0)
+    {
+        printf("[bit tail: ");
+        for (int i = UINT8_BIT_COUNT - 1; i >= UINT8_BIT_COUNT - bs->bit_offset; i--)
+            if ((bs->stream[bs->byte_offset] >> i) & 1)
+                printf("1");
+            else
+                printf("0");
+        printf("]");
+    }
+
+    printf("\n");
+}
+
 size_t bitstream_size(bitstream_t *bs)
 {
     return bs->size;
+}
+
+size_t bitstream_byte_offset(bitstream_t *bs)
+{
+    return bs->byte_offset;
+}
+
+size_t bitstream_bit_offset(bitstream_t *bs)
+{
+    return bs->bit_offset;
 }

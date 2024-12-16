@@ -5,10 +5,13 @@
 #include <stddef.h>
 
 #include "bitstream.h"
+#include "hashmap.h"
+
 
 typedef struct huffman_node_t huffman_node_t;
 typedef struct sym_code_t sym_code_t;
 
+typedef HASHMAP(uint8_t, sym_code_t) huffman_enc_map_t;
 
 /// @brief Print huffman tree
 /// @param root root of tree
@@ -33,5 +36,7 @@ huffman_node_t *huffman_generate(uint8_t *data, size_t size);
 /// @param size size of data
 /// @return encoded data
 bitstream_t *huffman_encode(huffman_node_t *root, uint8_t *data, size_t size);
+
+int huffman_depth(huffman_node_t *root);
 
 #endif

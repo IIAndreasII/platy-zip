@@ -5,7 +5,9 @@
  * it under the terms of the MIT license. See LICENSE for details.
  */
 
-#pragma once
+#ifndef __HASH_MAP_BASE_H__
+#define __HASH_MAP_BASE_H__
+
 #include <stdbool.h>
 #include <stddef.h>
 
@@ -55,3 +57,5 @@ double hashmap_base_collisions_variance(const struct hashmap_base *hb);
 size_t hashmap_hash_default(const void *data, size_t len);
 size_t hashmap_hash_string(const char *key);
 size_t hashmap_hash_string_i(const char *key);
+
+#endif
