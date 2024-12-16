@@ -8,6 +8,15 @@
  *          [ ] Decode data
  *      [ ] Duplicate string elimination (LZxx)
  * - .ZIP compliancy
+ *      [ ] Headers
+ *          [ ] Local file header
+ *          [ ] Data descriptor
+ *          [ ] Central directory file header (CDHF)
+ *          [ ] End of central directory record (EOCD)
+ * - Unit testing
+ *      [ ] Priority queue
+ *      [ ] Bitstream
+ *      [ ] Huffman
  */
 
 #include <stdio.h>
