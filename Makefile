@@ -1,6 +1,6 @@
 # Variables
-CC = gcc
-CFLAGS = -Wall -Wextra -Iinclude -g
+CC = gcc-14
+CFLAGS = -std=c23 -Wall -Wextra -Iinclude -g
 SRC_DIR = src
 INCLUDE_DIR = include
 BUILD_DIR = build

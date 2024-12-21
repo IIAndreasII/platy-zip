@@ -24,7 +24,7 @@ void free_bitstream(bitstream_t *bs)
     free(bs);
 }
 
-void __bitstream_write_8(bitstream_t *bs, uint8_t data, size_t num_bits)
+void bitstream_write_8(bitstream_t *bs, uint8_t data, size_t num_bits)
 {
     // Can't write more bits than exist in a byte
     assert(num_bits <= UINT8_BIT_COUNT);
@@ -61,49 +61,49 @@ void __bitstream_write_8(bitstream_t *bs, uint8_t data, size_t num_bits)
     bs->size += num_bits;
 }
 
-void __bitstream_write_16(bitstream_t *bs, uint16_t bits, size_t num_bits)
+void bitstream_write_16(bitstream_t *bs, uint16_t bits, size_t num_bits)
 {
     assert(num_bits <= UINT16_BIT_COUNT);
 
     if (num_bits <= UINT8_BIT_COUNT)
     {
-        __bitstream_write_8(bs, (uint8_t)bits, num_bits);
+        bitstream_write_8(bs, (uint8_t)bits, num_bits);
         return;
     }
 
     uint8_t b1 = (uint8_t)(bits >> (num_bits - UINT8_BIT_COUNT));
-    __bitstream_write_8(bs, b1, UINT8_BIT_COUNT);
-    __bitstream_write_8(bs, (uint8_t)bits, num_bits - UINT8_BIT_COUNT);
+    bitstream_write_8(bs, b1, UINT8_BIT_COUNT);
+    bitstream_write_8(bs, (uint8_t)bits, num_bits - UINT8_BIT_COUNT);
 }
 
-void __bitstream_write_32(bitstream_t *bs, uint32_t bits, size_t num_bits)
+void bitstream_write_32(bitstream_t *bs, uint32_t bits, size_t num_bits)
 {
     assert(num_bits <= UINT32_BIT_COUNT);
 
     if (num_bits <= UINT16_BIT_COUNT)
     {
-        __bitstream_write_16(bs, (uint16_t)bits, num_bits);
+        bitstream_write_16(bs, (uint16_t)bits, num_bits);
         return;
     }
 
     uint16_t a = (uint16_t)(bits >> (num_bits - UINT16_BIT_COUNT));
-    __bitstream_write_16(bs, a, UINT16_BIT_COUNT);
-    __bitstream_write_16(bs, (uint16_t)bits, num_bits - UINT16_BIT_COUNT);
+    bitstream_write_16(bs, a, UINT16_BIT_COUNT);
+    bitstream_write_16(bs, (uint16_t)bits, num_bits - UINT16_BIT_COUNT);
 }
 
-void __bitstream_write_64(bitstream_t *bs, uint64_t bits, size_t num_bits)
+void bitstream_write_64(bitstream_t *bs, uint64_t bits, size_t num_bits)
 {
     assert(num_bits <= UINT64_BIT_COUNT);
 
     if (num_bits <= UINT32_BIT_COUNT)
     {
-        __bitstream_write_32(bs, (uint32_t)bits, num_bits);
+        bitstream_write_32(bs, (uint32_t)bits, num_bits);
         return;
     }
 
     uint32_t a = (uint32_t)(bits >> (num_bits - UINT32_BIT_COUNT));
-    __bitstream_write_32(bs, a, UINT32_BIT_COUNT);
-    __bitstream_write_32(bs, (uint16_t)bits, num_bits - UINT32_BIT_COUNT);
+    bitstream_write_32(bs, a, UINT32_BIT_COUNT);
+    bitstream_write_32(bs, (uint16_t)bits, num_bits - UINT32_BIT_COUNT);
 }
 
 void print_bitstream(bitstream_t *bs)
@@ -120,7 +120,7 @@ void print_bitstream(bitstream_t *bs)
         printf(" ");
     }
 
-    for (int i = UINT8_BIT_COUNT - 1; i >= UINT8_BIT_COUNT - bs->bit_offset; i--)
+    for (size_t i = UINT8_BIT_COUNT - 1; i >= UINT8_BIT_COUNT - bs->bit_offset; i--)
         if ((bs->stream[bs->byte_offset] >> i) & 1)
             printf("1");
         else
@@ -130,28 +130,10 @@ void print_bitstream(bitstream_t *bs)
 
 static uint8_t dec_to_hex(uint8_t d)
 {
+    assert(d <= 15);
+
     switch (d)
     {
-    case 0:
-        return '0';
-    case 1:
-        return '1';
-    case 2:
-        return '2';
-    case 3:
-        return '3';
-    case 4:
-        return '4';
-    case 5:
-        return '5';
-    case 6:
-        return '6';
-    case 7:
-        return '7';
-    case 8:
-        return '8';
-    case 9:
-        return '9';
     case 10:
         return 'A';
     case 11:
@@ -165,7 +147,7 @@ static uint8_t dec_to_hex(uint8_t d)
     case 15:
         return 'F';
     default:
-        return '-';
+        return d + '0';
     }
 }
 
@@ -181,7 +163,7 @@ void print_bitstream_hex(bitstream_t *bs)
     if (bs->bit_offset > 0)
     {
         printf("[bit tail: ");
-        for (int i = UINT8_BIT_COUNT - 1; i >= UINT8_BIT_COUNT - bs->bit_offset; i--)
+        for (size_t i = UINT8_BIT_COUNT - 1; i >= UINT8_BIT_COUNT - bs->bit_offset; i--)
             if ((bs->stream[bs->byte_offset] >> i) & 1)
                 printf("1");
             else

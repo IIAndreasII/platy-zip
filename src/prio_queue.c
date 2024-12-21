@@ -97,7 +97,7 @@ void* pq_min(prio_queue_t* q)
     void* x = q->a[1];
     q->a[1] = q->a[q->i];
     *(*q->position)(q->a[1]) = 1;
-    q->a[q->i] = NULL;
+    q->a[q->i] = nullptr;
     q->i--;
     down(q, 1);
 
@@ -110,4 +110,3 @@ void pq_change_priority(prio_queue_t* pq, void* x)
     up(pq, k);
     down(pq, k);
 }
-

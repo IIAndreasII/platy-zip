@@ -19,7 +19,7 @@ extern "C" {
  * INTERNAL USE ONLY: Updates an iterator structure after the current element was removed.
  */
 #define __HASHMAP_ITER_RESET(iter) ({                                   \
-    ((iter)->iter_pos = hashmap_base_iter((iter)->iter_map, (iter)->iter_pos)) != NULL; \
+    ((iter)->iter_pos = hashmap_base_iter((iter)->iter_map, (iter)->iter_pos)) != nullptr; \
 })
 
 /*
@@ -199,7 +199,7 @@ extern "C" {
  *   HASHMAP(<key_type>, <data_type>) *h - hashmap pointer
  *   <key_type> *key - pointer to the key to lookup
  *
- * Return the data pointer, or NULL if no entry exists.
+ * Return the data pointer, or nullptr if no entry exists.
  */
 #define hashmap_get(h, key) ({                                          \
     typeof((h)->map_types->t_key) __map_key = (key);                    \
@@ -213,7 +213,7 @@ extern "C" {
  *   HASHMAP(<key_type>, <data_type>) *h - hashmap pointer
  *   <key_type> *key - pointer to the key to remove
  *
- * Returns the data pointer, or NULL, if no entry was found.
+ * Returns the data pointer, or nullptr, if no entry was found.
  *
  * Note: it is not safe to call this function while iterating, unless
  * the "safe" variant of the foreach macro is used, and only the current
@@ -250,7 +250,7 @@ extern "C" {
  *   HASHMAP(<key_type>, <data_type>) *h - hashmap pointer
  */
 #define hashmap_iter(h)                                                 \
-    ((HASHMAP_ITER(*(h))){ &(h)->map_base, hashmap_base_iter(&(h)->map_base, NULL) })
+    ((HASHMAP_ITER(*(h))){ &(h)->map_base, hashmap_base_iter(&(h)->map_base, nullptr) })
 
 /*
  * Return true if an iterator is valid and safe to use.

@@ -72,7 +72,7 @@ static inline size_t hashmap_calc_index(const struct hashmap_base *hb, const voi
 
 /*
  * Return the next populated entry, starting with the specified one.
- * Returns NULL if there are no more valid entries.
+ * Returns nullptr if there are no more valid entries.
  */
 static struct hashmap_entry *hashmap_entry_get_populated(const struct hashmap_base *hb,
         const struct hashmap_entry *entry)
@@ -84,12 +84,12 @@ static struct hashmap_entry *hashmap_entry_get_populated(const struct hashmap_ba
             }
         }
     }
-    return NULL;
+    return nullptr;
 }
 
 /*
  * Find the hashmap entry with the specified key, or an empty slot.
- * Returns NULL if the entire table has been searched without finding a match.
+ * Returns nullptr if the entire table has been searched without finding a match.
  */
 static struct hashmap_entry *hashmap_entry_find(const struct hashmap_base *hb,
     const void *key, bool find_empty)
@@ -107,14 +107,14 @@ static struct hashmap_entry *hashmap_entry_find(const struct hashmap_base *hb,
             if (find_empty) {
                 return entry;
             }
-            return NULL;
+            return nullptr;
         }
         if (hb->compare(key, entry->key) == 0) {
             return entry;
         }
         index = HASHMAP_PROBE_NEXT(hb, index);
     }
-    return NULL;
+    return nullptr;
 }
 
 /*
@@ -194,7 +194,7 @@ static int hashmap_rehash(struct hashmap_base *hb, size_t table_size)
         }
         new_entry = hashmap_entry_find(hb, entry->key, true);
         /* Failure indicates an algorithm bug */
-        assert(new_entry != NULL);
+        assert(new_entry != nullptr);
 
         /* Shallow copy */
         *new_entry = *entry;
@@ -231,8 +231,8 @@ static void hashmap_free_keys(struct hashmap_base *hb)
 void hashmap_base_init(struct hashmap_base *hb,
         size_t (*hash_func)(const void *), int (*compare_func)(const void *, const void *))
 {
-    assert(hash_func != NULL);
-    assert(compare_func != NULL);
+    assert(hash_func != nullptr);
+    assert(compare_func != nullptr);
 
     memset(hb, 0, sizeof(*hb));
 
@@ -346,26 +346,26 @@ int hashmap_base_put(struct hashmap_base *hb, const void *key, void *data)
 }
 
 /*
- * Return the data pointer, or NULL if no entry exists.
+ * Return the data pointer, or nullptr if no entry exists.
  */
 void *hashmap_base_get(const struct hashmap_base *hb, const void *key)
 {
     struct hashmap_entry *entry;
 
     if (!key) {
-        return NULL;
+        return nullptr;
     }
 
     entry = hashmap_entry_find(hb, key, false);
     if (!entry) {
-        return NULL;
+        return nullptr;
     }
     return entry->data;
 }
 
 /*
  * Remove an entry with the specified key from the map.
- * Returns the data pointer, or NULL, if no entry was found.
+ * Returns the data pointer, or nullptr, if no entry was found.
  */
 void *hashmap_base_remove(struct hashmap_base *hb, const void *key)
 {
@@ -373,12 +373,12 @@ void *hashmap_base_remove(struct hashmap_base *hb, const void *key)
     void *data;
 
     if (!key) {
-        return NULL;
+        return nullptr;
     }
 
     entry = hashmap_entry_find(hb, key, false);
     if (!entry) {
-        return NULL;
+        return nullptr;
     }
     data = entry->data;
     /* Clear the entry and make the chain contiguous */
@@ -448,7 +448,7 @@ bool hashmap_base_iter_next(const struct hashmap_base *hb, struct hashmap_entry 
     if (!*iter) {
         return false;
     }
-    return (*iter = hashmap_entry_get_populated(hb, *iter + 1)) != NULL;
+    return (*iter = hashmap_entry_get_populated(hb, *iter + 1)) != nullptr;
 }
 
 /*
@@ -465,7 +465,7 @@ bool hashmap_base_iter_remove(struct hashmap_base *hb, struct hashmap_entry **it
         /* Remove entry if iterator is valid */
         hashmap_entry_remove(hb, *iter);
     }
-    return (*iter = hashmap_entry_get_populated(hb, *iter)) != NULL;
+    return (*iter = hashmap_entry_get_populated(hb, *iter)) != nullptr;
 }
 
 /*
@@ -474,7 +474,7 @@ bool hashmap_base_iter_remove(struct hashmap_base *hb, struct hashmap_entry **it
 const void *hashmap_base_iter_get_key(const struct hashmap_entry *iter)
 {
     if (!iter) {
-        return NULL;
+        return nullptr;
     }
     return (const void *)iter->key;
 }
@@ -485,7 +485,7 @@ const void *hashmap_base_iter_get_key(const struct hashmap_entry *iter)
 void *hashmap_base_iter_get_data(const struct hashmap_entry *iter)
 {
     if (!iter) {
-        return NULL;
+        return nullptr;
     }
     return iter->data;
 }

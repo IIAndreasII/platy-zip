@@ -4,10 +4,10 @@
 #include <stddef.h>
 #include <inttypes.h>
 
-#define UINT8_BIT_COUNT sizeof(uint8_t) * 8UL
-#define UINT16_BIT_COUNT sizeof(uint16_t) * 8UL
-#define UINT32_BIT_COUNT sizeof(uint32_t) * 8UL
-#define UINT64_BIT_COUNT sizeof(uint64_t) * 8UL
+#define UINT8_BIT_COUNT sizeof(uint8_t) * __CHAR_BIT__
+#define UINT16_BIT_COUNT sizeof(uint16_t) * __CHAR_BIT__
+#define UINT32_BIT_COUNT sizeof(uint32_t) * __CHAR_BIT__
+#define UINT64_BIT_COUNT sizeof(uint64_t) * __CHAR_BIT__
 
 typedef struct bitstream_t bitstream_t;
 
@@ -24,41 +24,34 @@ void free_bitstream(bitstream_t* bs);
 /// @param bs ptr to the stream
 void print_bitstream(bitstream_t *bs);
 
-// TODO: print in hex format
-
 /// @brief Print the bitstream in hexademicals, byte separated.
 ///        If the last byte is incomplete, print the tail in bits
 /// @param bs ptr to the stream
 void print_bitstream_hex(bitstream_t* bs);
 
-#define bitstream_write_8(bs, data, num_bits) __bitstream_write_8(bs, data, num_bits)
-#define bitstream_write_16(bs, data, num_bits) __bitstream_write_16(bs, data, num_bits)
-#define bitstream_write_32(bs, data, num_bits) __bitstream_write_32(bs, data, num_bits)
-#define bitstream_write_64(bs, data, num_bits) __bitstream_write_64(bs, data, num_bits)
+/// @brief Write num_bits from data to the bitstream
+/// @param bs ptr to the stream
+/// @param data data to be written
+/// @param num_bits number of bits to write
+void bitstream_write_8(bitstream_t *bs, uint8_t data, size_t num_bits);
 
 /// @brief Write num_bits from data to the bitstream
 /// @param bs ptr to the stream
 /// @param data data to be written
 /// @param num_bits number of bits to write
-void __bitstream_write_8(bitstream_t *bs, uint8_t data, size_t num_bits);
+void bitstream_write_16(bitstream_t *bs, uint16_t data, size_t num_bits);
 
 /// @brief Write num_bits from data to the bitstream
 /// @param bs ptr to the stream
 /// @param data data to be written
 /// @param num_bits number of bits to write
-void __bitstream_write_16(bitstream_t *bs, uint16_t data, size_t num_bits);
+void bitstream_write_32(bitstream_t *bs, uint32_t data, size_t num_bits);
 
 /// @brief Write num_bits from data to the bitstream
 /// @param bs ptr to the stream
 /// @param data data to be written
 /// @param num_bits number of bits to write
-void __bitstream_write_32(bitstream_t *bs, uint32_t data, size_t num_bits);
-
-/// @brief Write num_bits from data to the bitstream
-/// @param bs ptr to the stream
-/// @param data data to be written
-/// @param num_bits number of bits to write
-void __bitstream_write_64(bitstream_t *bs, uint64_t data, size_t num_bits);
+void bitstream_write_64(bitstream_t *bs, uint64_t data, size_t num_bits);
 
 /// @brief Get the size of the stream in bits
 /// @param bs ptr to the stream

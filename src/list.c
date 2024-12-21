@@ -24,9 +24,9 @@ void insert_last(list_t** list1, void *p)
 
 	list2 = new_list(p);
 
-	if (*list1 == NULL)
+	if (*list1 == nullptr)
 		*list1 = list2;
-	else if (list2 != NULL) {
+	else if (list2 != nullptr) {
 		(*list1)->pred->succ = list2;
 		list2->pred->succ = *list1;
 		tmp	= (*list1)->pred;
@@ -48,9 +48,9 @@ static void append(list_t** list1, list_t* list2)
 {
 	list_t*		tmp;
 
-	if (*list1 == NULL)
+	if (*list1 == nullptr)
 		*list1 = list2;
-	else if (list2 != NULL) {
+	else if (list2 != nullptr) {
 		(*list1)->pred->succ = list2;
 		list2->pred->succ = *list1;
 		tmp	= (*list1)->pred;
@@ -72,7 +72,7 @@ void insert_before(list_t** list, void *data)
 
 	p = new_list(data);
 
-	if (*list == NULL)
+	if (*list == nullptr)
 		*list = p;
 	else
 		append(&p, *list);
@@ -85,7 +85,7 @@ void insert_after(list_t** list, void *data)
 
 	p = new_list(data);
 
-	if (*list == NULL)
+	if (*list == nullptr)
 		*list = p;
 	else {
 		q = (*list)->succ;
@@ -98,7 +98,7 @@ size_t length(list_t *list)
 	list_t*		p;
 	size_t		n;
 
-	if (list == NULL)
+	if (list == nullptr)
 		return 0;
 	else {
 		p = list;
@@ -116,13 +116,13 @@ void* remove_first(list_t** list)
 	void*		data;
 	list_t*		p;
 
-	if (*list == NULL)
-		return NULL;
+	if (*list == nullptr)
+		return nullptr;
 	p = *list;
 	data = p->data;
 
 	if (*list == (*list)->succ)
-		*list = NULL;
+		*list = nullptr;
 	else
 		*list = p->succ;
 
@@ -133,21 +133,21 @@ void* remove_first(list_t** list)
 
 void free_list(list_t** list)
 {
-	if (*list == NULL)
+	if (*list == nullptr)
 		return;
 
 	while (*list != (*list)->succ)
 		delete_list((*list)->succ);
 	delete_list(*list);
 
-	*list = NULL;
+	*list = nullptr;
 }
 
 void apply(list_t* list, void (*func)(void*))
 {
 	list_t*		p;
 
-	if (list == NULL)
+	if (list == nullptr)
 		return;
 
 	p = list;
@@ -168,7 +168,7 @@ void remove_from_list(list_t** list, void* data)
 		if (p->data == data) {
 			if (p == h) {
 				if (h == h->succ)
-					*list = NULL;
+					*list = nullptr;
 				else
 					*list = h->succ;
 			}
