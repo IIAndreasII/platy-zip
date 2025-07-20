@@ -40,4 +40,6 @@ size_t pq_size(prio_queue_t* pq);
 /// @param x element which's key has changed
 void pq_change_priority(prio_queue_t* pq, void* x);
 
+void pq_free(prio_queue_t *pq);
+
 #endif

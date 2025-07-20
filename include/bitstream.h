@@ -9,7 +9,15 @@
 #define UINT32_BIT_COUNT sizeof(uint32_t) * __CHAR_BIT__
 #define UINT64_BIT_COUNT sizeof(uint64_t) * __CHAR_BIT__
 
-typedef struct bitstream_t bitstream_t;
+typedef struct 
+{
+    uint8_t *stream;
+    size_t size; // in bits
+    uint8_t bit_offset;
+    size_t byte_offset;
+} bitstream_t;
+
+//struct bitstream_t bitstream_t;
 
 /// @brief Allocate new bitstream with room for init_size bytes
 /// @param init_size size at initialization (bytes)
@@ -67,5 +75,14 @@ size_t bitstream_byte_offset(bitstream_t* bs);
 /// @param bs ptr to the stream
 /// @return bit offset
 size_t bitstream_bit_offset(bitstream_t *bs);
+
+/// @brief Read the bit at current offset
+/// @param bs ptr to the bitstream
+/// @return value of bit
+uint8_t bitstream_read_bit(bitstream_t *bs);
+
+/// @brief Free the bitstream and set pointer to nullptr
+/// @param bs ptr to the stream
+void bitstream_free(bitstream_t *bs);
 
 #endif

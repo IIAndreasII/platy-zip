@@ -3,18 +3,12 @@
 #include <malloc.h>
 #include <assert.h>
 
-struct bitstream_t
-{
-    uint8_t *stream;
-    size_t size; // in bits
-    uint8_t bit_offset;
-    size_t byte_offset;
-};
+
 
 bitstream_t *bitstream_new(size_t init_size)
 {
     bitstream_t *bs = calloc(1, sizeof(bitstream_t));
-    bs->stream = malloc(init_size);
+    bs->stream = calloc(init_size, sizeof(uint8_t));
     return bs;
 }
 
@@ -187,4 +181,22 @@ size_t bitstream_byte_offset(bitstream_t *bs)
 size_t bitstream_bit_offset(bitstream_t *bs)
 {
     return bs->bit_offset;
+}
+
+uint8_t bitstream_read_bit(bitstream_t *bs)
+{
+    uint8_t byte = bs->stream[bs->byte_offset]; 
+    uint8_t bit = bs->bit_offset;
+
+    return (byte >> (7 - bit)) & 1;
+
+
+    return 0;
+}
+
+void bitstream_free(bitstream_t *bs)
+{
+    free(bs->stream);
+    free(bs);
+    bs = nullptr;
 }

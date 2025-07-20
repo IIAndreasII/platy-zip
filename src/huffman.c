@@ -49,7 +49,7 @@ static size_t *position_huffman(void *_ptr)
     return &ptr->pq_i;
 }
 
-static bool huffman_is_branch(huffman_node_t* node)
+static bool huffman_is_branch(huffman_node_t *node)
 {
     return node->left != nullptr && node->right != nullptr;
 }
@@ -102,18 +102,18 @@ huffman_node_t *huffman_generate(uint8_t *buf, size_t size)
     for (size_t i = 0; i < NUM_SYMBOLS; i++)
     {
         double weight = (double)freq[i] / (double)size;
-        huffman_node_t *hn = huffman_node_new();
 
         // Add node only if symbol occurs
         if (freq[i])
         {
+            huffman_node_t *hn = huffman_node_new();
             hn->symbol = (uint8_t)i;
             hn->weight = weight;
             pq_insert(pq_huffman, hn);
         }
     }
 
-    // Next step: create huffman tree :)
+    // Create huffman tree
     while (pq_size(pq_huffman) > 1)
     {
         huffman_node_t *l = (huffman_node_t *)pq_min(pq_huffman);
@@ -128,6 +128,7 @@ huffman_node_t *huffman_generate(uint8_t *buf, size_t size)
     }
 
     huffman_node_t *root = (huffman_node_t *)pq_min(pq_huffman);
+    free(pq_huffman);
     return root;
 }
 
@@ -140,9 +141,9 @@ static void __huffman_generate_enc_map(huffman_enc_map_t *h, huffman_node_t *roo
     {
         key.bit_len++;
         uint64_t prev_code = key.code;
-        key.code = (prev_code << 1);
+        key.code = prev_code << 1;
         __huffman_generate_enc_map(h, root->left, key);
-        key.code = ((prev_code) << 1) + 1;
+        key.code = (prev_code << 1) + 1;
         __huffman_generate_enc_map(h, root->right, key);
     }
     else
@@ -157,14 +158,13 @@ static void __huffman_generate_enc_map(huffman_enc_map_t *h, huffman_node_t *roo
 void huffman_generate_enc_map(huffman_node_t *root, huffman_enc_map_t *enc_map)
 {
     sym_code_t key = {.bit_len = 0, .code = 0};
-
     __huffman_generate_enc_map(enc_map, root, key);
 }
 
 bitstream_t *huffman_encode(huffman_enc_map_t *enc_map, uint8_t *data, size_t size)
 {
-    bitstream_t *bs = bitstream_new(size);
     sym_code_t *sc;
+    bitstream_t *bs = bitstream_new(size);
     for (size_t s = 0; s < size; s++)
     {
         sc = hashmap_get(enc_map, &data[s]);
@@ -172,6 +172,35 @@ bitstream_t *huffman_encode(huffman_enc_map_t *enc_map, uint8_t *data, size_t si
     }
 
     return bs;
+}
+
+static uint8_t decode_symbol(huffman_node_t *root, bitstream_t *bs)
+{
+    if (!root->is_branch)
+        return root->symbol;
+
+    uint8_t bit = bitstream_read_bit(bs);
+
+    bs->bit_offset++;
+    if (bs->bit_offset >= UINT8_BIT_COUNT)
+    {
+        bs->bit_offset %= UINT8_BIT_COUNT;
+        bs->byte_offset++;
+    }
+
+    return bit ? decode_symbol(root->right, bs) : decode_symbol(root->left, bs);
+}
+
+uint8_t huffman_decode(huffman_node_t *root, bitstream_t *bs, uint8_t *buf, const size_t size)
+{
+    bs->bit_offset = 0;
+    bs->byte_offset = 0;
+    for (size_t i = 0; i < size; i++)
+    {
+        buf[i] = decode_symbol(root, bs);
+    }
+
+    return 0;
 }
 
 size_t huffman_height(huffman_node_t *root)
@@ -208,10 +237,26 @@ size_t sym_hash(const uint8_t *data)
 
 int sym_compare(const uint8_t *lhs, const uint8_t *rhs)
 {
-    if (*lhs == *rhs)
-        return 0;
-    else if (*lhs > *rhs)
-        return 1;
-    else
-        return -1;
+    return *lhs - *rhs;
+}
+
+void huffman_free(huffman_node_t *root)
+{
+    if (root == nullptr)
+        return;
+
+    huffman_free(root->left);
+    huffman_free(root->right);
+    free(root);
+}
+
+void huffman_enc_map_free(huffman_enc_map_t *enc_map)
+{
+    const uint8_t *k;
+    sym_code_t *v;
+    hashmap_foreach(k, v, enc_map)
+    {
+        free(v);
+    }
+    hashmap_cleanup(enc_map);
 }

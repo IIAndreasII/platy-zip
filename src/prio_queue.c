@@ -110,3 +110,10 @@ void pq_change_priority(prio_queue_t* pq, void* x)
     up(pq, k);
     down(pq, k);
 }
+
+void pq_free(prio_queue_t *pq)
+{
+    void *c;
+    while((c = pq_min(pq)))
+        free(c);
+}

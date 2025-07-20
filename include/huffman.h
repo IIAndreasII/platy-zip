@@ -36,11 +36,18 @@ huffman_node_t *huffman_generate(uint8_t *data, size_t size);
 void huffman_generate_enc_map(huffman_node_t* root, huffman_enc_map_t* enc_map);
 
 /// @brief Encode data using its huffman tree
-/// @param root root of huffman tree
+/// @param enc_map ptr to encoding map
 /// @param data data to encode
 /// @param size size of data
 /// @return encoded data
 bitstream_t *huffman_encode(huffman_enc_map_t *enc_map, uint8_t *data, size_t size);
+
+/// @brief Decode data using its huffman encoding map
+/// @param enc_map root of huffman tree
+/// @param bs bitstream of encoded data
+/// @param buf ptr to buffer for decoded data
+/// @return 0 if successful, -1 if not
+uint8_t huffman_decode(huffman_node_t *root, bitstream_t *bs, uint8_t *buf, const size_t size);
 
 /// @brief Get the depth of the tree
 /// @param root root of huffman tree
@@ -61,5 +68,11 @@ size_t sym_hash(const uint8_t *data);
 /// @param rhs rhs
 /// @return 1 if lhs > rhs, -1 if lhs < rhs, 0 otherwise
 int sym_compare(const uint8_t *lhs, const uint8_t *rhs);
+
+/// @brief Free the huffman tree
+/// @param root ptr to the root
+void huffman_free(huffman_node_t* root);
+
+void huffman_enc_map_free(huffman_enc_map_t *enc_map);
 
 #endif
