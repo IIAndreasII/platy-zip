@@ -9,7 +9,7 @@
 #define UINT32_BIT_COUNT sizeof(uint32_t) * __CHAR_BIT__
 #define UINT64_BIT_COUNT sizeof(uint64_t) * __CHAR_BIT__
 
-typedef struct 
+typedef struct
 {
     uint8_t *stream;
     size_t size; // in bits

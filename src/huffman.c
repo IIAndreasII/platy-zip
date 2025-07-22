@@ -3,12 +3,13 @@
 #include <malloc.h>
 #include <memory.h>
 #include <stdio.h>
+#include <limits.h>
 
 #include "hashmap.h"
 #include "prio_queue.h"
 #include "bitstream.h"
 
-#define NUM_SYMBOLS 256
+#define NUM_SYMBOLS (UCHAR_MAX + 1)
 
 // Prioritize node with least weight
 static int compare_huffman(const void *_lhs, const void *_rhs)

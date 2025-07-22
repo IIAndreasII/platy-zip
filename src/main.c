@@ -28,13 +28,13 @@
 #include "prio_queue.h"
 #include "huffman.h"
 #include "hashmap.h"
+#include "file.h"
 
 int main(int argc, char **argv)
 {
-    const char *str = "A_DEAD_DAD_CEDED_A_BAD_BABE_A_BEADED_ABACA_BED";
-    // char* str = "the letters are sorted by increasing frequency, and the least frequent two at each step are combined and reinserted into the list, and a partial tree is constructed";
+    //const char *str = "A_DEAD_DAD_CEDED_A_BAD_BABE_A_BEADED_ABACA_BED";
+    const char* str = "the letters are sorted by increasing frequency, and the least frequent two at each step are combined and reinserted into the list, and a partial tree is constructed";
 
-    printf("C std: %li\n", __STDC_VERSION__);
     printf("Input:\n%s\n", str);
 
     size_t size = strlen(str);
@@ -56,9 +56,11 @@ int main(int argc, char **argv)
     printf("Original size: %lu bits\nEncoded size: %lu bits\n", size * UINT8_BIT_COUNT, bitstream_size(stream));
 
     uint8_t *buf = calloc(size + 1, sizeof(uint8_t));
-    buf[size] = '\0';
     huffman_decode(huff_tree, stream, buf, size);
     printf("Decoded string:\n%s\n", buf);
+
+    if (write_to_file("test", buf, size, FILE_APPEND) == EOF)
+        printf("file operation is weird");
 
 
     huffman_free(huff_tree);
