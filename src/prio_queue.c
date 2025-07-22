@@ -3,60 +3,64 @@
 #include <malloc.h>
 #include <memory.h>
 
-struct prio_queue_t {
-    int (*compare)(const void*, const void*);
-    size_t* (*position)(void*);
+struct prio_queue_t
+{
+    int (*compare)(const void *, const void *);
+    size_t *(*position)(void *);
     size_t i;
     size_t n;
     void *a[];
 };
 
-static void swap(prio_queue_t* q, size_t i, size_t j)
+static void swap(prio_queue_t *q, const size_t i, const size_t j)
 {
-    void* x = q->a[i];
+    void *x = q->a[i];
     q->a[i] = q->a[j];
     q->a[j] = x;
     *(*q->position)(q->a[i]) = i;
     *(*q->position)(q->a[j]) = j;
 }
 
-static void up(prio_queue_t* q, size_t k)
+static void up(prio_queue_t *q, const size_t k)
 {
     size_t j;
 
-    if (k > 1) {
+    if (k > 1)
+    {
         j = k / 2;
-        if ((*q->compare)(q->a[j], q->a[k]) > 0) {
+        if ((*q->compare)(q->a[j], q->a[k]) > 0)
+        {
             swap(q, k, j);
             up(q, j);
         }
     }
 }
 
-static void down(prio_queue_t* q, size_t k)
+static void down(prio_queue_t *q, const size_t k)
 {
     size_t j;
     if (2 * k > q->i)
         return;
     else if (2 * k == q->i)
         j = 2 * k;
-    else if ((*q->compare)(q->a[2*k], q->a[2*k + 1]) < 0)
+    else if ((*q->compare)(q->a[2 * k], q->a[2 * k + 1]) < 0)
         j = 2 * k;
     else
         j = 2 * k + 1;
 
-    if ((*q->compare)(q->a[k], q->a[j]) > 0) {
+    if ((*q->compare)(q->a[k], q->a[j]) > 0)
+    {
         swap(q, k, j);
         down(q, j);
     }
 }
 
-prio_queue_t* pq_new(size_t n,
-                     int (*compare)(const void*, const void*),
-                     size_t* (*position)(void*))
+prio_queue_t *pq_new(size_t n,
+                     int (*compare)(const void *, const void *),
+                     size_t *(*position)(void *))
 {
-    size_t s = sizeof(prio_queue_t) + (n + 1) * sizeof(void*);
-    prio_queue_t* pq = malloc(s);
+    size_t s = sizeof(prio_queue_t) + (n + 1) * sizeof(void *);
+    prio_queue_t *pq = malloc(s);
     memset(pq, 0, s);
     pq->n = n;
     pq->i = 0;
@@ -65,12 +69,13 @@ prio_queue_t* pq_new(size_t n,
     return pq;
 }
 
-void pq_init(prio_queue_t* q, void* b, size_t s)
+void pq_init(prio_queue_t *q, void *b, const size_t s)
 {
     size_t k;
 
-    for (k = 1; k <= q->n; k++) {
-        q->a[k] = (char*)b + s * (k - 1);
+    for (k = 1; k <= q->n; k++)
+    {
+        q->a[k] = (char *)b + s * (k - 1);
         *(*q->position)(q->a[k]) = k;
     }
 
@@ -79,7 +84,7 @@ void pq_init(prio_queue_t* q, void* b, size_t s)
         down(q, k);
 }
 
-void pq_insert(prio_queue_t* q, void *x)
+void pq_insert(prio_queue_t *q, void *x)
 {
     q->i++;
     q->a[q->i] = x;
@@ -87,14 +92,14 @@ void pq_insert(prio_queue_t* q, void *x)
     up(q, q->i);
 }
 
-size_t pq_size(prio_queue_t* q)
+size_t pq_size(prio_queue_t *q)
 {
     return q->i;
 }
 
-void* pq_min(prio_queue_t* q)
+void *pq_min(prio_queue_t *q)
 {
-    void* x = q->a[1];
+    void *x = q->a[1];
     q->a[1] = q->a[q->i];
     *(*q->position)(q->a[1]) = 1;
     q->a[q->i] = nullptr;
@@ -104,7 +109,7 @@ void* pq_min(prio_queue_t* q)
     return x;
 }
 
-void pq_change_priority(prio_queue_t* pq, void* x)
+void pq_change_priority(prio_queue_t *pq, void *x)
 {
     size_t k = *(*pq->position)(x);
     up(pq, k);
@@ -114,6 +119,7 @@ void pq_change_priority(prio_queue_t* pq, void* x)
 void pq_free(prio_queue_t *pq)
 {
     void *c;
-    while((c = pq_min(pq)))
+    while ((c = pq_min(pq)))
         free(c);
+    free(pq);
 }

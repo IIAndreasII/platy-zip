@@ -11,12 +11,28 @@
 typedef struct huffman_node_t huffman_node_t;
 typedef struct sym_code_t sym_code_t;
 
+struct sym_code_t
+{
+    uint64_t code;
+    size_t bit_len;
+};
+
+struct huffman_node_t
+{
+    uint8_t symbol;
+    double weight;         // Probability of symbol occurrance
+    huffman_node_t *left;  // 0
+    huffman_node_t *right; // 1
+    bool is_branch;
+    size_t pq_i; // used for priority queue position function
+};
+
 typedef HASHMAP(uint8_t, sym_code_t) huffman_enc_map_t;
 
 /// @brief Print huffman tree
 /// @param root root of tree
 /// @param depth used to offset printing
-void __print_huffman(huffman_node_t *root, size_t depth);
+void __print_huffman(const huffman_node_t *root, const size_t depth);
 
 #define print_huffman(root)       \
     {                             \
@@ -28,19 +44,19 @@ void __print_huffman(huffman_node_t *root, size_t depth);
 /// @param data the data
 /// @param size size of data
 /// @return root of huffman tree
-huffman_node_t *huffman_generate(uint8_t *data, size_t size);
+huffman_node_t *huffman_generate(const uint8_t *data, const size_t size);
 
 /// @brief Generate an encoding map from a huffman tree
 /// @param root root of the huffman tree
 /// @param enc_map ptr to empty dict
-void huffman_generate_enc_map(huffman_node_t* root, huffman_enc_map_t* enc_map);
+void huffman_generate_enc_map(const huffman_node_t* root, huffman_enc_map_t* enc_map);
 
 /// @brief Encode data using its huffman tree
 /// @param enc_map ptr to encoding map
 /// @param data data to encode
 /// @param size size of data
 /// @return encoded data
-bitstream_t *huffman_encode(huffman_enc_map_t *enc_map, uint8_t *data, size_t size);
+bitstream_t *huffman_encode(const huffman_enc_map_t *enc_map, const uint8_t *data, const size_t size);
 
 /// @brief Decode data using its huffman encoding map
 /// @param enc_map root of huffman tree
@@ -73,6 +89,8 @@ int sym_compare(const uint8_t *lhs, const uint8_t *rhs);
 /// @param root ptr to the root
 void huffman_free(huffman_node_t* root);
 
+/// @brief Free encoding map for huffman tree
+/// @param enc_map ptr
 void huffman_enc_map_free(huffman_enc_map_t *enc_map);
 
 #endif

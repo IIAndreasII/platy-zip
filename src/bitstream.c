@@ -4,8 +4,7 @@
 #include <assert.h>
 
 
-
-bitstream_t *bitstream_new(size_t init_size)
+bitstream_t *bitstream_new(const size_t init_size)
 {
     bitstream_t *bs = calloc(1, sizeof(bitstream_t));
     bs->stream = calloc(init_size, sizeof(uint8_t));
@@ -18,8 +17,9 @@ void free_bitstream(bitstream_t *bs)
     free(bs);
 }
 
-void bitstream_write_8(bitstream_t *bs, uint8_t data, size_t num_bits)
+void bitstream_write_8(bitstream_t *bs, const uint8_t data, const size_t num_bits)
 {
+    uint8_t space_left, bit_overlap, bits, left_byte_bits, right_byte_bits;
     // Can't write more bits than exist in a byte
     assert(num_bits <= UINT8_BIT_COUNT);
 
@@ -27,11 +27,11 @@ void bitstream_write_8(bitstream_t *bs, uint8_t data, size_t num_bits)
     if (bs->bit_offset + num_bits > UINT8_BIT_COUNT)
     {
         // space left in current byte
-        uint8_t space_left = UINT8_BIT_COUNT - bs->bit_offset;
-        uint8_t bit_overlap = num_bits - space_left;
+        space_left = UINT8_BIT_COUNT - bs->bit_offset;
+        bit_overlap = num_bits - space_left;
 
-        uint8_t left_byte_bits = data >> bit_overlap;
-        uint8_t right_byte_bits = data << (UINT8_BIT_COUNT - bit_overlap);
+        left_byte_bits = data >> bit_overlap;
+        right_byte_bits = data << (UINT8_BIT_COUNT - bit_overlap);
 
         // Shift and OR to prepend bits
         bs->stream[bs->byte_offset] |= left_byte_bits;
@@ -43,7 +43,7 @@ void bitstream_write_8(bitstream_t *bs, uint8_t data, size_t num_bits)
     else
     {
         // shift to prepend bits
-        uint8_t bits = data << (UINT8_BIT_COUNT - num_bits - bs->bit_offset);
+        bits = data << (UINT8_BIT_COUNT - num_bits - bs->bit_offset);
         bs->stream[bs->byte_offset] |= bits;
         bs->bit_offset += num_bits;
         if (bs->bit_offset >= UINT8_BIT_COUNT)
@@ -55,56 +55,62 @@ void bitstream_write_8(bitstream_t *bs, uint8_t data, size_t num_bits)
     bs->size += num_bits;
 }
 
-void bitstream_write_16(bitstream_t *bs, uint16_t bits, size_t num_bits)
+void bitstream_write_16(bitstream_t *bs, const uint16_t bits, const size_t num_bits)
 {
+    uint8_t a;
     assert(num_bits <= UINT16_BIT_COUNT);
 
     if (num_bits <= UINT8_BIT_COUNT)
     {
-        bitstream_write_8(bs, (uint8_t)bits, num_bits);
+        bitstream_write_8(bs, (const uint8_t)bits, num_bits);
         return;
     }
 
-    uint8_t b1 = (uint8_t)(bits >> (num_bits - UINT8_BIT_COUNT));
-    bitstream_write_8(bs, b1, UINT8_BIT_COUNT);
-    bitstream_write_8(bs, (uint8_t)bits, num_bits - UINT8_BIT_COUNT);
+    a = (uint8_t)(bits >> (num_bits - UINT8_BIT_COUNT));
+    bitstream_write_8(bs, a, UINT8_BIT_COUNT);
+    bitstream_write_8(bs, (const uint8_t)bits, num_bits - UINT8_BIT_COUNT);
 }
 
-void bitstream_write_32(bitstream_t *bs, uint32_t bits, size_t num_bits)
+void bitstream_write_32(bitstream_t *bs, const uint32_t bits, const size_t num_bits)
 {
+    uint16_t a;
     assert(num_bits <= UINT32_BIT_COUNT);
 
     if (num_bits <= UINT16_BIT_COUNT)
     {
-        bitstream_write_16(bs, (uint16_t)bits, num_bits);
+        bitstream_write_16(bs, (const uint16_t)bits, num_bits);
         return;
     }
 
-    uint16_t a = (uint16_t)(bits >> (num_bits - UINT16_BIT_COUNT));
+    a = (uint16_t)(bits >> (num_bits - UINT16_BIT_COUNT));
     bitstream_write_16(bs, a, UINT16_BIT_COUNT);
-    bitstream_write_16(bs, (uint16_t)bits, num_bits - UINT16_BIT_COUNT);
+    bitstream_write_16(bs, (const uint16_t)bits, num_bits - UINT16_BIT_COUNT);
 }
 
-void bitstream_write_64(bitstream_t *bs, uint64_t bits, size_t num_bits)
+void bitstream_write_64(bitstream_t *bs, const uint64_t bits, const size_t num_bits)
 {
+    uint32_t a;
     assert(num_bits <= UINT64_BIT_COUNT);
 
     if (num_bits <= UINT32_BIT_COUNT)
     {
-        bitstream_write_32(bs, (uint32_t)bits, num_bits);
+        bitstream_write_32(bs, (const uint32_t)bits, num_bits);
         return;
     }
 
-    uint32_t a = (uint32_t)(bits >> (num_bits - UINT32_BIT_COUNT));
+    a = (uint32_t)(bits >> (num_bits - UINT32_BIT_COUNT));
     bitstream_write_32(bs, a, UINT32_BIT_COUNT);
-    bitstream_write_32(bs, (uint16_t)bits, num_bits - UINT32_BIT_COUNT);
+    bitstream_write_32(bs, (const uint16_t)bits, num_bits - UINT32_BIT_COUNT);
 }
 
-void print_bitstream(bitstream_t *bs)
+void print_bitstream(const bitstream_t *bs)
 {
-    for (size_t i = 0; i < bs->byte_offset; i++)
+    size_t i;
+    int j;
+
+    for (i = 0; i < bs->byte_offset; i++)
     {
-        for (int j = UINT8_BIT_COUNT - 1; j >= 0; j--)
+        for (j = UINT8_BIT_COUNT - 1; j >= 0; j--)
         {
             if ((bs->stream[i] >> j) & 1)
                 printf("1");
@@ -114,7 +120,7 @@ void print_bitstream(bitstream_t *bs)
         printf(" ");
     }
 
-    for (size_t i = UINT8_BIT_COUNT - 1; i >= UINT8_BIT_COUNT - bs->bit_offset; i--)
+    for (i = UINT8_BIT_COUNT - 1; i >= UINT8_BIT_COUNT - bs->bit_offset; i--)
         if ((bs->stream[bs->byte_offset] >> i) & 1)
             printf("1");
         else
@@ -122,7 +128,7 @@ void print_bitstream(bitstream_t *bs)
     printf("\n");
 }
 
-static uint8_t dec_to_hex(uint8_t d)
+static uint8_t dec_to_hex(const uint8_t d)
 {
     assert(d <= 15);
 
@@ -145,19 +151,21 @@ static uint8_t dec_to_hex(uint8_t d)
     }
 }
 
-void print_bitstream_hex(bitstream_t *bs)
+void print_bitstream_hex(const bitstream_t *bs)
 {
-    for (size_t i = 0; i < bs->byte_offset; i++)
+    size_t i;
+    uint8_t l, r;
+    for (i = 0; i < bs->byte_offset; i++)
     {
-        uint8_t l = bs->stream[i] >> (UINT8_BIT_COUNT / 2);
-        uint8_t r = bs->stream[i] & 0b00001111;
+        l = bs->stream[i] >> (UINT8_BIT_COUNT / 2);
+        r = bs->stream[i] & 0b00001111;
         printf("%c%c ", dec_to_hex(l), dec_to_hex(r));
     }
 
     if (bs->bit_offset > 0)
     {
         printf("[bit tail: ");
-        for (size_t i = UINT8_BIT_COUNT - 1; i >= UINT8_BIT_COUNT - bs->bit_offset; i--)
+        for (i = UINT8_BIT_COUNT - 1; i >= UINT8_BIT_COUNT - bs->bit_offset; i--)
             if ((bs->stream[bs->byte_offset] >> i) & 1)
                 printf("1");
             else
@@ -168,30 +176,27 @@ void print_bitstream_hex(bitstream_t *bs)
     printf("\n");
 }
 
-size_t bitstream_size(bitstream_t *bs)
+size_t bitstream_size(const bitstream_t *bs)
 {
     return bs->size;
 }
 
-size_t bitstream_byte_offset(bitstream_t *bs)
+size_t bitstream_byte_offset(const bitstream_t *bs)
 {
     return bs->byte_offset;
 }
 
-size_t bitstream_bit_offset(bitstream_t *bs)
+size_t bitstream_bit_offset(const bitstream_t *bs)
 {
     return bs->bit_offset;
 }
 
-uint8_t bitstream_read_bit(bitstream_t *bs)
+uint8_t bitstream_read_bit(const bitstream_t *bs)
 {
-    uint8_t byte = bs->stream[bs->byte_offset]; 
+    uint8_t byte = bs->stream[bs->byte_offset];
     uint8_t bit = bs->bit_offset;
 
     return (byte >> (7 - bit)) & 1;
-
-
-    return 0;
 }
 
 void bitstream_free(bitstream_t *bs)

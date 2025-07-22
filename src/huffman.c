@@ -10,22 +10,6 @@
 
 #define NUM_SYMBOLS 256
 
-struct sym_code_t
-{
-    uint64_t code;
-    size_t bit_len;
-};
-
-struct huffman_node_t
-{
-    uint8_t symbol;
-    double weight;         // Probability of symbol occurrance
-    huffman_node_t *left;  // 0
-    huffman_node_t *right; // 1
-    bool is_branch;
-    size_t pq_i; // used for priority queue position function
-};
-
 // Prioritize node with least weight
 static int compare_huffman(const void *_lhs, const void *_rhs)
 {
@@ -49,32 +33,34 @@ static size_t *position_huffman(void *_ptr)
     return &ptr->pq_i;
 }
 
-static bool huffman_is_branch(huffman_node_t *node)
+static bool huffman_is_branch(const huffman_node_t * const node)
 {
     return node->left != nullptr && node->right != nullptr;
 }
 
-void __print_huffman(huffman_node_t *root, size_t depth)
+void __print_huffman(const huffman_node_t *root, const size_t depth)
 {
+    size_t i;
+
     if (root == nullptr)
         return;
 
     if (huffman_is_branch(root))
     {
         printf("branch\n");
-        for (size_t i = 0; i < depth; i++)
+        for (i = 0; i < depth; i++)
             printf(".");
         printf("\n");
         __print_huffman(root->left, depth + 1);
 
-        for (size_t i = 0; i < depth; i++)
+        for (i = 0; i < depth; i++)
             printf(".");
         printf("\n");
         __print_huffman(root->right, depth + 1);
     }
     else
     {
-        for (size_t i = 0; i < depth; i++)
+        for (i = 0; i < depth; i++)
             printf(".");
         printf("'%c' - %f\n", root->symbol, root->weight);
     }
@@ -88,38 +74,38 @@ static huffman_node_t *huffman_node_new()
     return hn;
 }
 
-huffman_node_t *huffman_generate(uint8_t *buf, size_t size)
+huffman_node_t *huffman_generate(const uint8_t *buf, const size_t size)
 {
+    double weight;
+    huffman_node_t *l, *r, *hn, *root, *internal;
+    size_t i;
     size_t freq[NUM_SYMBOLS] = {0};
 
     prio_queue_t *pq_huffman = pq_new(NUM_SYMBOLS, compare_huffman, position_huffman);
 
     // Count each symbol
-    for (size_t i = 0; i < size; i++)
+    for (i = 0; i < size; i++)
         freq[buf[i]]++;
 
     // Calculate weights and create initial huffman nodes
-    for (size_t i = 0; i < NUM_SYMBOLS; i++)
-    {
-        double weight = (double)freq[i] / (double)size;
-
+    for (i = 0; i < NUM_SYMBOLS; i++)
         // Add node only if symbol occurs
         if (freq[i])
         {
-            huffman_node_t *hn = huffman_node_new();
+            weight = (double)freq[i] / (double)size;
+            hn = huffman_node_new();
             hn->symbol = (uint8_t)i;
             hn->weight = weight;
             pq_insert(pq_huffman, hn);
         }
-    }
 
     // Create huffman tree
     while (pq_size(pq_huffman) > 1)
     {
-        huffman_node_t *l = (huffman_node_t *)pq_min(pq_huffman);
-        huffman_node_t *r = (huffman_node_t *)pq_min(pq_huffman);
+        l = (huffman_node_t *)pq_min(pq_huffman);
+        r = (huffman_node_t *)pq_min(pq_huffman);
 
-        huffman_node_t *internal = huffman_node_new();
+        internal = huffman_node_new();
         internal->left = l;
         internal->right = r;
         internal->weight = l->weight + r->weight;
@@ -127,20 +113,23 @@ huffman_node_t *huffman_generate(uint8_t *buf, size_t size)
         pq_insert(pq_huffman, internal);
     }
 
-    huffman_node_t *root = (huffman_node_t *)pq_min(pq_huffman);
+    root = (huffman_node_t *)pq_min(pq_huffman);
     free(pq_huffman);
     return root;
 }
 
-static void __huffman_generate_enc_map(huffman_enc_map_t *h, huffman_node_t *root, sym_code_t key)
+static void __huffman_generate_enc_map(huffman_enc_map_t *h, const huffman_node_t *root, sym_code_t key)
 {
+    uint64_t prev_code;
+    sym_code_t *sc;
+
     if (root == nullptr)
         return;
 
     if (huffman_is_branch(root))
     {
         key.bit_len++;
-        uint64_t prev_code = key.code;
+        prev_code = key.code;
         key.code = prev_code << 1;
         __huffman_generate_enc_map(h, root->left, key);
         key.code = (prev_code << 1) + 1;
@@ -148,24 +137,25 @@ static void __huffman_generate_enc_map(huffman_enc_map_t *h, huffman_node_t *roo
     }
     else
     {
-        sym_code_t *sc = malloc(sizeof(sym_code_t));
+        sc = malloc(sizeof(sym_code_t));
         sc->bit_len = key.bit_len;
         sc->code = key.code;
         hashmap_put(h, &root->symbol, sc);
     }
 }
 
-void huffman_generate_enc_map(huffman_node_t *root, huffman_enc_map_t *enc_map)
+void huffman_generate_enc_map(const huffman_node_t *root, huffman_enc_map_t *enc_map)
 {
     sym_code_t key = {.bit_len = 0, .code = 0};
     __huffman_generate_enc_map(enc_map, root, key);
 }
 
-bitstream_t *huffman_encode(huffman_enc_map_t *enc_map, uint8_t *data, size_t size)
+bitstream_t *huffman_encode(const huffman_enc_map_t *enc_map, const uint8_t *data, const size_t size)
 {
+    size_t s;
     sym_code_t *sc;
     bitstream_t *bs = bitstream_new(size);
-    for (size_t s = 0; s < size; s++)
+    for (s = 0; s < size; s++)
     {
         sc = hashmap_get(enc_map, &data[s]);
         bitstream_write_64(bs, sc->code, sc->bit_len);
@@ -176,10 +166,12 @@ bitstream_t *huffman_encode(huffman_enc_map_t *enc_map, uint8_t *data, size_t si
 
 static uint8_t decode_symbol(huffman_node_t *root, bitstream_t *bs)
 {
+    uint8_t bit;
+
     if (!root->is_branch)
         return root->symbol;
 
-    uint8_t bit = bitstream_read_bit(bs);
+    bit = bitstream_read_bit(bs);
 
     bs->bit_offset++;
     if (bs->bit_offset >= UINT8_BIT_COUNT)
@@ -193,35 +185,38 @@ static uint8_t decode_symbol(huffman_node_t *root, bitstream_t *bs)
 
 uint8_t huffman_decode(huffman_node_t *root, bitstream_t *bs, uint8_t *buf, const size_t size)
 {
+    size_t i;
     bs->bit_offset = 0;
     bs->byte_offset = 0;
-    for (size_t i = 0; i < size; i++)
-    {
+    for (i = 0; i < size; i++)
         buf[i] = decode_symbol(root, bs);
-    }
 
     return 0;
 }
 
 size_t huffman_height(huffman_node_t *root)
 {
+    size_t l;
+    size_t r;
+
     if (root == nullptr)
         return -1;
 
-    size_t l = huffman_height(root->left);
-    size_t r = huffman_height(root->right);
+    l = huffman_height(root->left);
+    r = huffman_height(root->right);
 
     return (l > r ? l : r) + 1;
 }
 
 void huffman_print_enc_map(huffman_enc_map_t *enc_map)
 {
+    int i;
     const uint8_t *k;
     sym_code_t *v;
     hashmap_foreach(k, v, enc_map)
     {
         printf("key: %u, sym: '%c', code: ", *k, *k);
-        for (int i = v->bit_len - 1; i >= 0; i--)
+        for (i = v->bit_len - 1; i >= 0; i--)
             if ((v->code >> i) & 1)
                 printf("1");
             else
@@ -255,8 +250,8 @@ void huffman_enc_map_free(huffman_enc_map_t *enc_map)
     const uint8_t *k;
     sym_code_t *v;
     hashmap_foreach(k, v, enc_map)
-    {
         free(v);
-    }
+
     hashmap_cleanup(enc_map);
+    free(enc_map);
 }

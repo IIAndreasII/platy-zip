@@ -34,6 +34,7 @@ int main(int argc, char **argv)
     const char *str = "A_DEAD_DAD_CEDED_A_BAD_BABE_A_BEADED_ABACA_BED";
     // char* str = "the letters are sorted by increasing frequency, and the least frequent two at each step are combined and reinserted into the list, and a partial tree is constructed";
 
+    printf("C std: %li\n", __STDC_VERSION__);
     printf("Input:\n%s\n", str);
 
     size_t size = strlen(str);
@@ -41,12 +42,12 @@ int main(int argc, char **argv)
     huffman_node_t *huff_tree = huffman_generate((uint8_t *)str, size);
     printf("Hufftree depth: %lu\n", huffman_height(huff_tree));
 
-    huffman_enc_map_t enc_map;
-    hashmap_init(&enc_map, sym_hash, sym_compare);
-    huffman_generate_enc_map(huff_tree, &enc_map);
-    huffman_print_enc_map(&enc_map);
+    huffman_enc_map_t *enc_map = calloc(1, sizeof(huffman_enc_map_t));
+    hashmap_init(enc_map, sym_hash, sym_compare);
+    huffman_generate_enc_map(huff_tree, enc_map);
+    huffman_print_enc_map(enc_map);
 
-    bitstream_t *stream = huffman_encode(&enc_map, (uint8_t*)str, size);
+    bitstream_t *stream = huffman_encode(enc_map, (uint8_t*)str, size);
 
     printf("Encoded stream:\n");
     print_bitstream(stream);
@@ -62,7 +63,7 @@ int main(int argc, char **argv)
 
     huffman_free(huff_tree);
     bitstream_free(stream);
-    huffman_enc_map_free(&enc_map);
+    huffman_enc_map_free(enc_map);
     free(buf);
     return 0;
 }

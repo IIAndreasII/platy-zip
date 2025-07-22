@@ -30,56 +30,56 @@ void free_bitstream(bitstream_t* bs);
 
 /// @brief Print the bitstream's bits, byte separated
 /// @param bs ptr to the stream
-void print_bitstream(bitstream_t *bs);
+void print_bitstream(const bitstream_t *bs);
 
 /// @brief Print the bitstream in hexademicals, byte separated.
 ///        If the last byte is incomplete, print the tail in bits
 /// @param bs ptr to the stream
-void print_bitstream_hex(bitstream_t* bs);
+void print_bitstream_hex(const bitstream_t* bs);
 
 /// @brief Write num_bits from data to the bitstream
 /// @param bs ptr to the stream
 /// @param data data to be written
 /// @param num_bits number of bits to write
-void bitstream_write_8(bitstream_t *bs, uint8_t data, size_t num_bits);
+void bitstream_write_8(bitstream_t *bs, const uint8_t data, const size_t num_bits);
 
 /// @brief Write num_bits from data to the bitstream
 /// @param bs ptr to the stream
 /// @param data data to be written
 /// @param num_bits number of bits to write
-void bitstream_write_16(bitstream_t *bs, uint16_t data, size_t num_bits);
+void bitstream_write_16(bitstream_t *bs, const uint16_t data, const size_t num_bits);
 
 /// @brief Write num_bits from data to the bitstream
 /// @param bs ptr to the stream
 /// @param data data to be written
 /// @param num_bits number of bits to write
-void bitstream_write_32(bitstream_t *bs, uint32_t data, size_t num_bits);
+void bitstream_write_32(bitstream_t *bs, const uint32_t data, const size_t num_bits);
 
 /// @brief Write num_bits from data to the bitstream
 /// @param bs ptr to the stream
 /// @param data data to be written
 /// @param num_bits number of bits to write
-void bitstream_write_64(bitstream_t *bs, uint64_t data, size_t num_bits);
+void bitstream_write_64(bitstream_t *bs, const uint64_t data, const size_t num_bits);
 
 /// @brief Get the size of the stream in bits
 /// @param bs ptr to the stream
 /// @return number of bits in stream
-size_t bitstream_size(bitstream_t *bs);
+size_t bitstream_size(const bitstream_t *bs);
 
 /// @brief Get the byte offset of the stream
 /// @param bs ptr to the stream
 /// @return byte offset
-size_t bitstream_byte_offset(bitstream_t* bs);
+size_t bitstream_byte_offset(const bitstream_t* bs);
 
 /// @brief Get the bit offset for the current byte
 /// @param bs ptr to the stream
 /// @return bit offset
-size_t bitstream_bit_offset(bitstream_t *bs);
+size_t bitstream_bit_offset(const bitstream_t *bs);
 
 /// @brief Read the bit at current offset
 /// @param bs ptr to the bitstream
 /// @return value of bit
-uint8_t bitstream_read_bit(bitstream_t *bs);
+uint8_t bitstream_read_bit(const bitstream_t *bs);
 
 /// @brief Free the bitstream and set pointer to nullptr
 /// @param bs ptr to the stream

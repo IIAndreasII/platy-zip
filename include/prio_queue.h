@@ -18,7 +18,7 @@ prio_queue_t* pq_new(size_t n,
 /// @param pq pointer to
 /// @param b collection
 /// @param s size of collection
-void pq_init(prio_queue_t* pq, void* b, size_t s);
+void pq_init(prio_queue_t* pq, void* b, const size_t s);
 
 /// @brief Enqueue element
 /// @param pq pointer to the queue
@@ -40,6 +40,8 @@ size_t pq_size(prio_queue_t* pq);
 /// @param x element which's key has changed
 void pq_change_priority(prio_queue_t* pq, void* x);
 
+/// @brief Free the priority queue
+/// @param pq ptr to the queue
 void pq_free(prio_queue_t *pq);
 
 #endif
