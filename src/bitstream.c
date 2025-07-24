@@ -7,7 +7,11 @@
 bitstream_t *bitstream_new(const size_t init_size)
 {
     bitstream_t *bs = calloc(1, sizeof(bitstream_t));
+    if (bs == nullptr)
+        return nullptr;
     bs->stream = calloc(init_size, sizeof(uint8_t));
+    if (bs->stream == nullptr)
+        return nullptr;
     return bs;
 }
 

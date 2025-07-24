@@ -70,6 +70,9 @@ void __print_huffman(const huffman_node_t *root, const size_t depth)
 static huffman_node_t *huffman_node_new()
 {
     huffman_node_t *hn = calloc(1, sizeof(huffman_node_t));
+    if (hn == nullptr)
+        return nullptr;
+
     hn->left = nullptr;
     hn->right = nullptr;
     return hn;
@@ -138,7 +141,7 @@ static void __huffman_generate_enc_map(huffman_enc_map_t *h, const huffman_node_
     }
     else
     {
-        sc = malloc(sizeof(sym_code_t));
+        sc = calloc(1, sizeof(sym_code_t));
         sc->bit_len = key.bit_len;
         sc->code = key.code;
         hashmap_put(h, &root->symbol, sc);
@@ -151,18 +154,16 @@ void huffman_generate_enc_map(const huffman_node_t *root, huffman_enc_map_t *enc
     __huffman_generate_enc_map(enc_map, root, key);
 }
 
-bitstream_t *huffman_encode(const huffman_enc_map_t *enc_map, const uint8_t *data, const size_t size)
+void huffman_encode(bitstream_t *bs, const huffman_enc_map_t *enc_map, const uint8_t *data, const size_t size)
 {
     size_t s;
     sym_code_t *sc;
-    bitstream_t *bs = bitstream_new(size);
+
     for (s = 0; s < size; s++)
     {
         sc = hashmap_get(enc_map, &data[s]);
         bitstream_write_64(bs, sc->code, sc->bit_len);
     }
-
-    return bs;
 }
 
 static uint8_t decode_symbol(huffman_node_t *root, bitstream_t *bs)

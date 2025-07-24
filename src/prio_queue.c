@@ -61,6 +61,9 @@ prio_queue_t *pq_new(size_t n,
 {
     size_t s = sizeof(prio_queue_t) + (n + 1) * sizeof(void *);
     prio_queue_t *pq = malloc(s);
+    if (pq == nullptr)
+        return nullptr;
+
     memset(pq, 0, s);
     pq->n = n;
     pq->i = 0;
@@ -119,7 +122,12 @@ void pq_change_priority(prio_queue_t *pq, void *x)
 void pq_free(prio_queue_t *pq)
 {
     void *c;
+    // avoid double free
+    if (pq == nullptr)
+        return;
+
     while ((c = pq_min(pq)))
         free(c);
     free(pq);
+    pq = nullptr;
 }

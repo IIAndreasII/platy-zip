@@ -52,11 +52,12 @@ huffman_node_t *huffman_generate(const uint8_t *data, const size_t size);
 void huffman_generate_enc_map(const huffman_node_t* root, huffman_enc_map_t* enc_map);
 
 /// @brief Encode data using its huffman tree
+/// @param bs ptr to bitstream
 /// @param enc_map ptr to encoding map
 /// @param data data to encode
-/// @param size size of data
+/// @param size size
 /// @return encoded data
-bitstream_t *huffman_encode(const huffman_enc_map_t *enc_map, const uint8_t *data, const size_t size);
+void huffman_encode(bitstream_t *bs, const huffman_enc_map_t *enc_map, const uint8_t *data, const size_t size);
 
 /// @brief Decode data using its huffman encoding map
 /// @param enc_map root of huffman tree

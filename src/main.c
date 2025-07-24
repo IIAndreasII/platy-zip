@@ -32,8 +32,8 @@
 
 int main(int argc, char **argv)
 {
-    //const char *str = "A_DEAD_DAD_CEDED_A_BAD_BABE_A_BEADED_ABACA_BED";
-    const char* str = "the letters are sorted by increasing frequency, and the least frequent two at each step are combined and reinserted into the list, and a partial tree is constructed";
+    const char *str = "A_DEAD_DAD_CEDED_A_BAD_BABE_A_BEADED_ABACA_BED";
+    //const char* str = "the letters are sorted by increasing frequency, and the least frequent two at each step are combined and reinserted into the list, and a partial tree is constructed";
 
     printf("Input:\n%s\n", str);
 
@@ -47,7 +47,8 @@ int main(int argc, char **argv)
     huffman_generate_enc_map(huff_tree, enc_map);
     huffman_print_enc_map(enc_map);
 
-    bitstream_t *stream = huffman_encode(enc_map, (uint8_t*)str, size);
+    bitstream_t *stream = bitstream_new(size);
+    huffman_encode(stream, enc_map, (uint8_t*)str, size);
 
     printf("Encoded stream:\n");
     print_bitstream(stream);
@@ -59,9 +60,8 @@ int main(int argc, char **argv)
     huffman_decode(huff_tree, stream, buf, size);
     printf("Decoded string:\n%s\n", buf);
 
-    if (write_to_file("test", buf, size, FILE_APPEND) == EOF)
+    if (open_and_write_to_file("_test", buf, size, FILE_WRITE) == EOF)
         printf("file operation is weird");
-
 
     huffman_free(huff_tree);
     bitstream_free(stream);
